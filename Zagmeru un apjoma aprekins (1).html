@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timber Calculator Suite</title>
+    <style>
+        :root {
+            --primary-color: #2c5e2e; /* Forest Green */
+            --secondary-color: #4CAF50;
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ccc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Language Switcher */
+        .lang-switch {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .lang-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        /* Content Sections */
+        .calc-section {
+            display: none;
+        }
+        .calc-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            margin-top: 0;
+        }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-row .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Section Dividers for Volume Calc */
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 15px 0 5px 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 2px;
+        }
+
+        button.calc-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        button.calc-btn:hover {
+            background-color: #1e4220;
+        }
+
+        /* Results */
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            display: none; 
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .result-item strong {
+            color: var(--primary-color);
+        }
+        
+        .sub-result {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 1rem;
+            line-height: 1.4;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="setLanguage('lv')">LV</button>
+        <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('shrink')" id="tab_shrink">Wet Size</button>
+        <button class="tab-btn" onclick="switchTab('volume')" id="tab_volume">Volume / Production</button>
+    </div>
+
+    <div id="section-shrink" class="calc-section active">
+        <h2 id="t_title">🌲 Wet Timber Size</h2>
+        
+        <div class="input-group">
+            <label for="dryWidth" id="t_width_label">Target Dry Width (mm)</label>
+            <input type="number" id="dryWidth" step="0.1" placeholder="e.g. 100">
+        </div>
+
+        <div class="input-group">
+            <label for="dryThickness" id="t_thick_label">Target Dry Thickness (mm)</label>
+            <input type="number" id="dryThickness" step="0.1" placeholder="e.g. 50">
+        </div>
+
+        <div class="input-group">
+            <label for="moisture" id="t_moisture_label">Target Moisture Content (%)</label>
+            <input type="number" id="moisture" value="18">
+        </div>
+
+        <button class="calc-btn" onclick="calculateSizes()" id="t_button">Calculate Green Size</button>
+
+        <div id="result-shrink" class="result-box">
+            <div class="result-item">
+                <span id="t_res_width">Wet Width:</span>
+                <strong id="wetWidthResult">-</strong>
+            </div>
+            <div class="result-item">
+                <span id="t_res_thick">Wet Thickness:</span>
+                <strong id="wetThicknessResult">-</strong>
+            </div>
+        </div>
+
+        <div class="note" id="t_note">
+            Formulas based on Fiber Saturation Point (FSP) of 30%.<br>
+            Shrinkage: Width ~0.26%/%, Thickness ~0.13%/%.
+        </div>
+    </div>
+
+    <div id="section-volume" class="calc-section">
+        <h2 id="v_title">📦 Production Volume</h2>
+        
+        <div class="section-label" id="v_lbl_raw">Raw Material (mm)</div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="rawThick" id="v_raw_thick">Thick</label>
+                <input type="number" id="rawThick" placeholder="38">
+            </div>
+            <div class="input-group">
+                <label for="rawWidth" id="v_raw_width">Width</label>
+                <input type="number" id="rawWidth" placeholder="125">
+            </div>
+        </div>
+
+        <div class="section-label" id="v_lbl_out">Finished Product (mm)</div>
+        <div class="input-row">
+            <div class="input-group">
+                <label for="outThick" id="v_out_thick">Thick</label>
+                <input type="number" id="outThick" placeholder="35">
+            </div>
+            <div class="input-group">
+                <label for="outWidth" id="v_out_width">Width</label>
+                <input type="number" id="outWidth" placeholder="60">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <div class="input-group">
+                <label for="pieces" id="v_pieces">Pieces per Board</label>
+                <input type="number" id="pieces" value="2">
+            </div>
+            <div class="input-group">
+                <label for="rejects" id="v_rejects">Reject %</label>
+                <input type="number" id="rejects" value="5">
+            </div>
+        </div>
+
+        <div class="input-group" style="margin-top: 10px;">
+            <label for="targetVol" id="v_target">Target Finished Volume (m³)</label>
+            <input type="number" id="targetVol" placeholder="e.g. 50">
+        </div>
+
+        <button class="calc-btn" onclick="calculateVolume()" id="v_btn">Calculate Raw Needed</button>
+
+        <div id="result-volume" class="result-box">
+            <div class="result-item">
+                <span id="v_res_raw">Raw Volume Needed:</span>
+                <strong id="resRawVol">-</strong>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #ccc; margin: 10px 0;">
+            <div class="sub-result">
+                <span id="v_res_gross">Gross Fin. Vol (w/ rejects):</span>
+                <span id="resGrossVol">-</span>
+            </div>
+            <div class="sub-result">
+                <span id="v_res_eff">Recovery Efficiency:</span>
+                <span id="resEfficiency">-</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- TRANSLATIONS ---
+    const translations = {
+        en: {
+            // Tabs
+            tab_shrink: "Wet Size",
+            tab_volume: "Volume / Production",
+            
+            // Shrinkage Tool
+            title: "🌲 Wet Sawing Size",
+            width_label: "Target Dry Width (mm)",
+            thick_label: "Target Dry Thickness (mm)",
+            moisture_label: "Target Moisture Content (%)",
+            button: "Calculate Green Size",
+            res_width: "Wet Width:",
+            res_thick: "Wet Thickness:",
+            note: "Based on Fiber Saturation Point (30%).<br>Shrinkage coef: Width 0.26%, Thickness 0.13% per 1% MC.",
+
+            // Volume Tool
+            v_title: "📦 Production Volume",
+            v_lbl_raw: "Raw Material (Input)",
+            v_lbl_out: "Finished Product (Output)",
+            v_raw_thick: "Thick",
+            v_raw_width: "Width",
+            v_out_thick: "Thick",
+            v_out_width: "Width",
+            v_pieces: "Pcs per Raw Board",
+            v_rejects: "Reject Rate (%)",
+            v_target: "Target On-Grade Volume (m³)",
+            v_btn: "Calculate Raw Needed",
+            v_res_raw: "Raw Volume Needed:",
+            v_res_gross: "Gross Prod (w/ rejects):",
+            v_res_eff: "Recovery %:"
+        },
+        lv: {
+            // Tabs
+            tab_shrink: "Zāģēšanas izmērs",
+            tab_volume: "Apjoma kalkulators",
+
+            // Shrinkage Tool
+            title: "🌲 Zāģēšanas izmērs",
+            width_label: "Vēlamais sausais platums (mm)",
+            thick_label: "Vēlamais sausais biezums (mm)",
+            moisture_label: "Vēlamais mitrums (%)",
+            button: "Aprēķināt zāģēšanas izmēru",
+            res_width: "Mitrs platums:",
+            res_thick: "Mitrs biezums:",
+            note: "Balstīts uz šķiedru piesātinājuma punktu (30%).<br>Sarukuma koef: Platums 0.26%, Biezums 0.13% uz 1% mitruma.",
+
+            // Volume Tool
+            v_title: "📦 Ražošanas Apjoms",
+            v_lbl_raw: "Izejmateriāls (Sagatave)",
+            v_lbl_out: "Gatavais Produkts",
+            v_raw_thick: "Biezums",
+            v_raw_width: "Platums",
+            v_out_thick: "Biezums",
+            v_out_width: "Platums",
+            v_pieces: "Gab. no sagataves",
+            v_rejects: "Brāķis (%)",
+            v_target: "Vēlamais Gatavais Apjoms (m³)",
+            v_btn: "Aprēķināt Izejmateriālu",
+            v_res_raw: "Vajadzīgais Izejmateriāls:",
+            v_res_gross: "Kopā jāražo (ar brāķi):",
+            v_res_eff: "Iznākums (Recovery):"
+        },
+        ru: {
+            // Tabs
+            tab_shrink: "Размер распила",
+            tab_volume: "Расчет объема",
+
+            // Shrinkage Tool
+            title: "🌲 Сырой размер распила",
+            width_label: "Сухая ширина (мм)",
+            thick_label: "Сухая толщина (мм)",
+            moisture_label: "Конечная влажность (%)",
+            button: "Рассчитать размер",
+            res_width: "Сырая ширина:",
+            res_thick: "Сырая толщина:",
+            note: "На основе точки насыщения волокон (30%).<br>Коэф. усушки: Ширина 0.26%, Толщина 0.13% на 1% вл.",
+
+            // Volume Tool
+            v_title: "📦 Расчет производства",
+            v_lbl_raw: "Сырье (Заготовка)",
+            v_lbl_out: "Готовая продукция",
+            v_raw_thick: "Толщина",
+            v_raw_width: "Ширина",
+            v_out_thick: "Толщина",
+            v_out_width: "Ширина",
+            v_pieces: "Шт. из заготовки",
+            v_rejects: "Брак (%)",
+            v_target: "Целевой объем (m³)",
+            v_btn: "Рассчитать сырье",
+            v_res_raw: "Требуется сырья:",
+            v_res_gross: "Общ. объем (с браком):",
+            v_res_eff: "Выход (Recovery):"
+        }
+    };
+
+    let currentLang = 'en';
+
+    // --- LANGUAGE LOGIC ---
+    function setLanguage(lang) {
+        currentLang = lang;
+        const t = translations[lang];
+
+        // Tabs
+        document.getElementById('tab_shrink').innerText = t.tab_shrink;
+        document.getElementById('tab_volume').innerText = t.tab_volume;
+
+        // Shrinkage IDs
+        document.getElementById('t_title').innerText = t.title;
+        document.getElementById('t_width_label').innerText = t.width_label;
+        document.getElementById('t_thick_label').innerText = t.thick_label;
+        document.getElementById('t_moisture_label').innerText = t.moisture_label;
+        document.getElementById('t_button').innerText = t.button;
+        document.getElementById('t_res_width').innerText = t.res_width;
+        document.getElementById('t_res_thick').innerText = t.res_thick;
+        document.getElementById('t_note').innerHTML = t.note;
+
+        // Volume IDs
+        document.getElementById('v_title').innerText = t.v_title;
+        document.getElementById('v_lbl_raw').innerText = t.v_lbl_raw;
+        document.getElementById('v_lbl_out').innerText = t.v_lbl_out;
+        document.getElementById('v_raw_thick').innerText = t.v_raw_thick;
+        document.getElementById('v_raw_width').innerText = t.v_raw_width;
+        document.getElementById('v_out_thick').innerText = t.v_out_thick;
+        document.getElementById('v_out_width').innerText = t.v_out_width;
+        document.getElementById('v_pieces').innerText = t.v_pieces;
+        document.getElementById('v_rejects').innerText = t.v_rejects;
+        document.getElementById('v_target').innerText = t.v_target;
+        document.getElementById('v_btn').innerText = t.v_btn;
+        document.getElementById('v_res_raw').innerText = t.v_res_raw;
+        document.getElementById('v_res_gross').innerText = t.v_res_gross;
+        document.getElementById('v_res_eff').innerText = t.v_res_eff;
+
+        // Button States
+        const buttons = document.querySelectorAll('.lang-btn');
+        buttons.forEach(btn => {
+            if(btn.innerText.toLowerCase() === lang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // --- TAB LOGIC ---
+    function switchTab(tabName) {
+        // Update Buttons
+        document.getElementById('tab_shrink').classList.remove('active');
+        document.getElementById('tab_volume').classList.remove('active');
+        document.getElementById('tab_' + tabName).classList.add('active');
+
+        // Update Content
+        document.getElementById('section-shrink').classList.remove('active');
+        document.getElementById('section-volume').classList.remove('active');
+        document.getElementById('section-' + tabName).classList.add('active');
+    }
+
+    // --- CALC 1: SHRINKAGE ---
+    function calculateSizes() {
+        const dryWidth = parseFloat(document.getElementById('dryWidth').value);
+        const dryThickness = parseFloat(document.getElementById('dryThickness').value);
+        const targetMoisture = parseFloat(document.getElementById('moisture').value);
+
+        if (!dryWidth || !dryThickness || !targetMoisture) return;
+
+        const FSP = 30; 
+        const coefWidth = 0.0026; 
+        const coefThick = 0.0013; 
+
+        let wetWidth, wetThickness;
+
+        if (targetMoisture >= FSP) {
+            wetWidth = dryWidth;
+            wetThickness = dryThickness;
+        } else {
+            const moistureDiff = FSP - targetMoisture;
+            wetWidth = dryWidth / (1 - (coefWidth * moistureDiff));
+            wetThickness = dryThickness / (1 - (coefThick * moistureDiff));
+        }
+
+        document.getElementById('wetWidthResult').innerText = wetWidth.toFixed(1) + " mm";
+        document.getElementById('wetThicknessResult').innerText = wetThickness.toFixed(1) + " mm";
+        document.getElementById('result-shrink').style.display = 'block';
+    }
+
+    // --- CALC 2: VOLUME ---
+    function calculateVolume() {
+        // Get Inputs
+        const rawT = parseFloat(document.getElementById('rawThick').value);
+        const rawW = parseFloat(document.getElementById('rawWidth').value);
+        const outT = parseFloat(document.getElementById('outThick').value);
+        const outW = parseFloat(document.getElementById('outWidth').value);
+        const pcs = parseFloat(document.getElementById('pieces').value);
+        const rejPerc = parseFloat(document.getElementById('rejects').value);
+        const targetVol = parseFloat(document.getElementById('targetVol').value);
+
+        if (!rawT || !rawW || !outT || !outW || !pcs || !targetVol) return;
+
+        // 1. Calculate Gross Finished Volume needed (to cover rejects)
+        // Formula: Net = Gross * (1 - Reject%)  =>  Gross = Net / (1 - Reject%)
+        const rejectFactor = (rejPerc || 0) / 100;
+        const grossFinVol = targetVol / (1 - rejectFactor);
+
+        // 2. Calculate Area Ratio (Geometric Efficiency)
+        const rawArea = rawT * rawW;
+        const finArea = outT * outW * pcs; // Total output area per input board
+        
+        // Safety check for zero
+        if(finArea === 0) return;
+
+        // 3. Calculate Raw Needed
+        // RawVol = GrossFinVol * (RawArea / FinArea)
+        const rawNeeded = grossFinVol * (rawArea / finArea);
+
+        // 4. Efficiency (Recovery)
+        // (FinArea / RawArea) * (1 - RejectFactor) ? 
+        // No, simple recovery is Volume Net Out / Volume Raw In
+        const recovery = (targetVol / rawNeeded) * 100;
+
+        // Display
+        document.getElementById('resRawVol').innerText = rawNeeded.toFixed(3) + " m³";
+        document.getElementById('resGrossVol').innerText = grossFinVol.toFixed(3) + " m³";
+        document.getElementById('resEfficiency').innerText = recovery.toFixed(1) + " %";
+        
+        document.getElementById('result-volume').style.display = 'block';
+    }
+
+    // Initialize Default Language
+    setLanguage('en');
+
+</script>
+
+</body>
+</html>
